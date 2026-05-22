@@ -5,20 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Burger Money: Meal Quest</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       font-family: Arial, Helvetica, sans-serif;
       background: #140018;
       touch-action: none;
       user-select: none;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
 
     canvas {
       display: block;
       width: 100vw;
-      height: 100vh;
+      height: 100dvh;
       background: #160024;
     }
 
@@ -57,13 +65,16 @@
       color: white;
       text-align: center;
       padding: 18px;
-      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .panel {
-      width: min(720px, 94vw);
-      max-height: 90vh;
-      overflow: auto;
+      width: min(720px, calc(100vw - 28px));
+      max-height: calc(100dvh - 28px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
       background: rgba(15, 5, 35, .96);
       border: 3px solid #ffd34d;
       border-radius: 18px;
@@ -74,7 +85,7 @@
 
     h1, h2, h3, p { margin-top: 0; }
     h1 { color: #ffd34d; text-shadow: 0 3px 0 #8b3b00; }
-    .sub { color: #ffeaa1; line-height: 1.35; }
+    .sub { color: #ffeaa1; line-height: 1.35; overflow-wrap: break-word; }
 
     button {
       border: 0;
@@ -255,14 +266,36 @@
     }
 
     @media (max-width: 620px) {
-      .screen { padding: 10px; align-items: flex-start; padding-top: max(12px, env(safe-area-inset-top)); }
-      .panel { padding: 14px; max-height: 94vh; }
-      h1 { font-size: 26px; }
-      h2 { font-size: 20px; }
-      .sub { font-size: 14px; }
+      .screen {
+        padding-left: max(10px, env(safe-area-inset-left));
+        padding-right: max(10px, env(safe-area-inset-right));
+        padding-top: max(10px, env(safe-area-inset-top));
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+        align-items: flex-start;
+      }
+      .panel {
+        width: calc(100vw - 20px);
+        max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);
+        padding: 12px;
+        border-width: 2px;
+        border-radius: 14px;
+      }
+      h1 { font-size: 24px; line-height: 1.05; margin-bottom: 8px; }
+      h2 { font-size: 18px; margin-bottom: 8px; }
+      .sub { font-size: 13px; }
+      #startScreen .simpleBadges { display: none; }
+      #startScreen .panel > p.sub:last-child { display: none; }
       .badgeRow { grid-template-columns: 1fr; gap: 6px; margin: 8px 0; }
       .badge { padding: 7px; font-size: 12px; }
-      button { font-size: 15px; padding: 10px 14px; margin: 4px; }
+      button {
+        display: block;
+        width: min(260px, 92%);
+        font-size: 17px;
+        padding: 11px 12px;
+        margin: 9px auto;
+        white-space: nowrap;
+      }
+      .small { width: auto; display: inline-block; font-size: 12px; padding: 7px 9px; margin: 3px; }
       #topCenter { top: 62px; width: 60vw; }
       #topLeft, #topRight { top: max(6px, env(safe-area-inset-top)); }
       .padButton { width: 64px; height: 64px; }
@@ -279,7 +312,14 @@
     }
 
     @media (max-height: 560px) and (orientation: landscape) {
-      .panel { transform: scale(.88); max-height: 108vh; }
+      .screen { align-items: flex-start; padding: 8px; }
+      .panel { max-height: calc(100dvh - 16px); padding: 10px; }
+      h1 { font-size: 22px; margin-bottom: 4px; }
+      h2 { font-size: 16px; margin-bottom: 4px; }
+      .sub { font-size: 12px; }
+      #startScreen .simpleBadges { display: none; }
+      #startScreen .panel > p.sub:last-child { display: none; }
+      button { display: inline-block; width: auto; min-width: 110px; font-size: 14px; padding: 9px 12px; margin: 4px; }
       .badgeRow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       #topCenter { top: 8px; width: 38vw; }
       .padButton { width: 54px; height: 54px; }
@@ -321,14 +361,13 @@
       <h1>🍔 Burger Money</h1>
       <h2>Meal Quest</h2>
       <p class="sub">
-        Collect burger money, climb longer scenes, dodge DROP obstacles, and earn enough for the ultimate meal prize.
-        This is a fast-food-inspired arcade game with saved local scoreboards.
+        Collect burger money, dodge DROP, grab power-ups, and reach the meal prize!
       </p>
-      <div class="badgeRow">
-        <div class="badge">🪙 Collect money and keep combos going.</div>
-        <div class="badge">☁️ Jump cloud-to-cloud through longer scenes.</div>
-        <div class="badge">🚀 Grab power-ups: rocket, magnet, shield, mega jump.</div>
-        <div class="badge">🚫 Hit DROP and you restart at the bottom of that scene.</div>
+      <div class="badgeRow simpleBadges">
+        <div class="badge">🪙 Collect money</div>
+        <div class="badge">🚫 Dodge DROP</div>
+        <div class="badge">🚀 Use power-ups</div>
+        <div class="badge">🏆 Beat high scores</div>
       </div>
       <button onclick="startGame()">Play</button>
       <button class="blue" onclick="showHow()">How to Play</button>
@@ -388,15 +427,31 @@
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
 
-  function fitCanvas() {
-    canvas.width = Math.max(320, window.innerWidth);
-    canvas.height = Math.max(520, window.innerHeight);
+  function viewportSize() {
+    const vv = window.visualViewport;
+    return {
+      w: Math.floor(vv ? vv.width : window.innerWidth),
+      h: Math.floor(vv ? vv.height : window.innerHeight)
+    };
   }
-  fitCanvas();
-  window.addEventListener("resize", () => {
+
+  function fitCanvas() {
+    const v = viewportSize();
+    canvas.width = Math.max(320, v.w);
+    canvas.height = Math.max(460, v.h);
+  }
+
+  function handleViewportChange() {
     fitCanvas();
     if (state.running) rebuildScene("resize");
-  });
+  }
+
+  fitCanvas();
+  window.addEventListener("resize", handleViewportChange);
+  window.addEventListener("orientationchange", () => setTimeout(handleViewportChange, 250));
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", handleViewportChange);
+  }
 
   const ASSET_URLS = {
     player: "https://i.ibb.co/r2qpJbRj/clown.png",

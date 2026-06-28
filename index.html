@@ -527,81 +527,64 @@
     const powers = [];
     const obstacles = [];
 
-    const margin = 18;
-    const starterW = Math.min(canvas.width - 40, Math.max(260, canvas.width * 0.64));
-    let x = canvas.width / 2 - starterW / 2;
-    let y = canvas.height - 72;
+    // A deliberate, reachable climbing lane. The previous generator could put
+    // the next safe platform too far to one side, especially on a wide screen.
+    const margin = 26;
+    const starterW = Math.min(canvas.width - margin * 2, Math.max(300, canvas.width * 0.52));
+    let platformW = Math.min(canvas.width - margin * 2, Math.max(178, lvl.platformWidth + 34));
+    let centerX = canvas.width / 2;
+    let y = canvas.height - 78;
+    let routeIndex = 0;
 
-    platforms.push(makePlatform(x, y, starterW, true));
+    platforms.push(makePlatform(centerX - starterW / 2, y, starterW, true));
 
-    // Guaranteed starter ladder so reset/drop never leaves the player without things to jump on.
-    const starterXs = [
-      canvas.width * 0.46,
-      canvas.width * 0.58,
-      canvas.width * 0.42,
-      canvas.width * 0.55,
-      canvas.width * 0.47,
-      canvas.width * 0.62
-    ];
-    for (let i = 0; i < starterXs.length; i++) {
-      y -= 76;
-      const w = Math.min(canvas.width - 56, lvl.platformWidth + 34);
-      x = clamp(starterXs[i] - w / 2, margin, canvas.width - w - margin);
-      platforms.push(makePlatform(x, y, w, false));
-      coins.push(makeCoin(x + w * 0.5 - 18, y - 50, 5));
-    }
+    // Build the entire route as one gentle zig-zag. Every next landing remains
+    // within a comfortable double-jump distance of the platform below it.
+    while ((canvas.height - 78) - y < lvl.height + 1000) {
+      const safeGap = routeIndex < 8 ? rand(66, 78) : rand(76, 94);
+      y -= safeGap;
 
-    let side = 1;
-    while (Math.abs(y - (canvas.height - 72)) < lvl.height + 900) {
-      const gap = rand(lvl.platformGap[0], lvl.platformGap[1]);
-      y -= gap;
-      const baseW = lvl.platformWidth + rand(-8, 28);
-      const maxStep = Math.min(220, canvas.width * 0.34);
-      x += side * rand(55, maxStep);
-      if (x < margin) { x = margin + rand(0, 60); side = 1; }
-      if (x + baseW > canvas.width - margin) { x = canvas.width - margin - baseW - rand(0, 45); side = -1; }
-      if (Math.random() < 0.35) side *= -1;
+      const maxShift = Math.min(canvas.width * 0.23, routeIndex < 8 ? 118 : 156);
+      const direction = routeIndex % 4 < 2 ? 1 : -1;
+      centerX += direction * rand(maxShift * 0.42, maxShift);
+      centerX = clamp(centerX, margin + platformW / 2, canvas.width - margin - platformW / 2);
 
-      const platform = makePlatform(x, y, baseW, false);
-      platforms.push(platform);
+      platformW = clamp(lvl.platformWidth + rand(22, 48), 184, Math.max(184, canvas.width - margin * 2));
+      const x = clamp(centerX - platformW / 2, margin, canvas.width - margin - platformW);
+      platforms.push(makePlatform(x, y, platformW, false));
 
-      // Money: placed near/on routes, not too far off to the side.
-      if (Math.random() < 0.82) {
-        const coinCount = Math.random() < 0.25 ? 2 : 1;
-        for (let c = 0; c < coinCount; c++) {
-          coins.push(makeCoin(
-            clamp(x + 22 + rand(0, Math.max(20, baseW - 58)), 20, canvas.width - 56),
-            y - 48 - c * 32,
-            Math.random() < 0.15 ? 10 : 5
-          ));
-        }
+      // Every safe platform has one reachable coin. Occasional bonus coins are
+      // centered above it rather than scattered into dead space.
+      coins.push(makeCoin(x + platformW / 2 - 20, y - 52, 5));
+      if (routeIndex > 7 && routeIndex % 5 === 0) {
+        coins.push(makeCoin(x + platformW / 2 - 20, y - 92, 10));
       }
 
-      // Power-ups are useful but not constant.
-      if (Math.random() < 0.16) {
+      // Helpful power-ups stay on the safe route.
+      if (routeIndex >= 7 && routeIndex % 9 === 0) {
         const types = ["magnet", "shield", "rocket", "mega"];
         powers.push({
-          x: clamp(x + baseW / 2 - 21 + rand(-32, 32), 20, canvas.width - 62),
-          y: y - 88,
+          x: clamp(x + platformW / 2 - 21, 20, canvas.width - 62),
+          y: y - 116,
           w: 42,
           h: 42,
-          type: types[Math.floor(Math.random() * types.length)],
+          type: types[Math.floor(routeIndex / 9) % types.length],
           collected: false
         });
       }
 
-      // DROP obstacles: placed between platforms, not directly on every route.
-      if (platforms.length > 10 && Math.random() < lvl.obstacleRate) {
-        const ow = Math.min(170, Math.max(100, canvas.width * 0.20));
-        const ox = clamp(x + (Math.random() < 0.5 ? -ow * .75 : baseW * .65), 10, canvas.width - ow - 10);
-        obstacles.push({
-          x: ox,
-          y: y + rand(34, 62),
-          w: ow,
-          h: 22,
-          hit: false
-        });
+      // DROP hazards begin only after the safe opening. They are placed at the
+      // far side of a platform, never across the center landing lane.
+      if (routeIndex >= 12 && routeIndex % 8 === 4) {
+        const ow = Math.min(118, Math.max(86, canvas.width * 0.13));
+        const leftSide = (routeIndex / 8) % 2 < 1;
+        const ox = leftSide
+          ? clamp(x - ow - 20, 10, canvas.width - ow - 10)
+          : clamp(x + platformW + 20, 10, canvas.width - ow - 10);
+        obstacles.push({ x: ox, y: y - 18, w: ow, h: 22, hit: false });
       }
+
+      routeIndex++;
     }
 
     return { platforms, coins, powers, obstacles };
@@ -623,8 +606,11 @@
     state.activePower = "";
     state.powerTimer = 0;
     state.player = makePlayer();
-    state.player.y = canvas.height - 150;
-    state.player.vy = -6;
+    const starter = state.platforms[0];
+    state.player.x = starter.x + starter.w / 2 - state.player.w / 2;
+    state.player.y = starter.y - state.player.h;
+    state.player.vy = 0;
+    state.player.jumpsLeft = 2;
     state.lastBounceWorld = 0;
 
     // Keep level money, but after DROP add fresh bottom coins/powers.
@@ -657,6 +643,11 @@
     state.obstacles = generated.obstacles;
     state.sceneProgress = 0;
     state.player = makePlayer();
+    const starter = state.platforms[0];
+    state.player.x = starter.x + starter.w / 2 - state.player.w / 2;
+    state.player.y = starter.y - state.player.h;
+    state.player.vy = 0;
+    state.player.jumpsLeft = 2;
     state.combo = 0;
     state.activePower = "";
     state.powerTimer = 0;
@@ -962,7 +953,7 @@
     // Use the same Burger Money neon world behind the home page and gameplay.
     if (img.background.ready && !img.background.failed) {
       drawCoverImage(img.background, 0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "rgba(20, 0, 45, .30)";
+      ctx.fillStyle = "rgba(20, 0, 45, .48)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     } else {
       const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -1014,17 +1005,16 @@
       c.x += c.speed;
       if (c.x > canvas.width + 100) c.x = -140;
       if (c.y > canvas.height + 120) c.y = -80;
-      drawSoftCloud(c.x, c.y, 75 * c.s, 0.13);
+      drawSoftCloud(c.x, c.y, 75 * c.s, 0.055);
     }
 
-    // Scene decorations.
-    const progressRatio = Math.min(1, state.sceneProgress / lvl.minProgress);
-    ctx.globalAlpha = 0.10;
+    // Keep the artwork atmospheric but leave the play lane clean and readable.
+    ctx.globalAlpha = 0.035;
     ctx.fillStyle = "#ffd34d";
-    ctx.font = "900 " + Math.max(40, canvas.width * 0.07) + "px Arial";
+    ctx.font = "900 " + Math.max(36, canvas.width * 0.05) + "px Arial";
     ctx.textAlign = "center";
     const words = ["DRIVE", "PLAY", "FRY", "NEON"];
-    ctx.fillText(words[state.levelIndex] || "MEAL", canvas.width/2, canvas.height * (0.68 - progressRatio * 0.25));
+    ctx.fillText(words[state.levelIndex] || "MEAL", canvas.width / 2, canvas.height * 0.72);
     ctx.restore();
   }
 
@@ -1043,9 +1033,9 @@
 
   function drawPlatform(p) {
     ctx.save();
-    ctx.shadowColor = p.starter ? "rgba(255,211,77,.8)" : "rgba(255,255,255,.45)";
-    ctx.shadowBlur = p.starter ? 18 : 10;
-    ctx.fillStyle = p.starter ? "#ffd34d" : "#f8f0ff";
+    ctx.shadowColor = p.starter ? "rgba(255,211,77,.95)" : "rgba(255,255,255,.9)";
+    ctx.shadowBlur = p.starter ? 22 : 16;
+    ctx.fillStyle = p.starter ? "#ffd34d" : "#ffffff";
     ctx.beginPath();
     roundRect(ctx, p.x, p.y, p.w, p.h, p.h/2);
     ctx.fill();

@@ -245,7 +245,7 @@
   </style>
 </head>
 <body>
-  <canvas id="game"></canvas>
+  <canvas id="game" tabindex="0" aria-label="Burger Money game"></canvas>
 
   <div id="hud">
     <div id="topLeft">
@@ -286,7 +286,7 @@
         <div class="badge">🚀 Grab power-ups: rocket, magnet, shield, mega jump.</div>
         <div class="badge">🚫 Hit DROP and you restart at the bottom of that scene.</div>
       </div>
-      <button onclick="startGame()">Play Fixed Version</button>
+      <button onclick="startGame()">Play</button>
       <button class="blue" onclick="showHow()">How to Play</button>
       <button class="green" onclick="showScoreboard()">Scoreboards</button>
       <p class="sub" style="font-size:12px;margin-top:12px;">Keyboard: arrows/A-D to move, up/space/W to jump. Mobile: use the buttons.</p>
@@ -505,13 +505,13 @@
       w: size,
       h: size,
       vx: 0,
-      vy: -5,
-      gravity: 0.30,
-      jumpPower: -12.2,
-      speed: 0.72,
-      maxSpeed: 7.2,
+      vy: 0,
+      gravity: 0.62,
+      jumpPower: -13.0,
+      speed: 0.95,
+      maxSpeed: 7.5,
       jumpsLeft: 2,
-      onGround: false,
+      onGround: true,
       invincible: 0
     };
   }
@@ -611,6 +611,7 @@
     state.player.y = starter.y - state.player.h;
     state.player.vy = 0;
     state.player.jumpsLeft = 2;
+    state.player.onGround = true;
     state.lastBounceWorld = 0;
 
     // Keep level money, but after DROP add fresh bottom coins/powers.
@@ -648,6 +649,7 @@
     state.player.y = starter.y - state.player.h;
     state.player.vy = 0;
     state.player.jumpsLeft = 2;
+    state.player.onGround = true;
     state.combo = 0;
     state.activePower = "";
     state.powerTimer = 0;
@@ -660,6 +662,7 @@
     document.getElementById("howScreen").style.display = "none";
     document.getElementById("gameOverScreen").style.display = "none";
     document.getElementById("scoreboardOverlay").style.display = "none";
+    canvas.focus({ preventScroll: true });
 
     state.running = true;
     state.levelIndex = 0;
@@ -763,27 +766,31 @@
 
     const moveLeft = state.inputLeft;
     const moveRight = state.inputRight;
-    if (moveLeft) p.vx -= p.speed;
-    if (moveRight) p.vx += p.speed;
-    if (!moveLeft && !moveRight) p.vx *= 0.88;
+    if (moveLeft && !moveRight) p.vx -= p.speed;
+    if (moveRight && !moveLeft) p.vx += p.speed;
+    if (!moveLeft && !moveRight) p.vx *= 0.76;
+    if (moveLeft && moveRight) p.vx *= 0.82;
+    if (Math.abs(p.vx) < 0.04) p.vx = 0;
     p.vx = clamp(p.vx, -p.maxSpeed, p.maxSpeed);
 
-    if (state.activePower === "rocket") {
-      p.vy = Math.min(p.vy, -5.0);
-      p.vy -= 0.08;
-    } else {
-      p.vy += p.gravity;
-    }
-
-    // Jump logic: one press, not held repeat.
+    // Burger Money now uses a controlled jump: the character stays on a
+    // platform until the player presses Jump, instead of automatically flying
+    // upward every time a landing is detected.
     const jumpDown = state.jumpPressed;
     if (jumpDown && !state.jumpWasDown && p.jumpsLeft > 0) {
       p.vy = p.jumpPower * (state.activePower === "mega" ? 1.25 : 1);
       p.jumpsLeft--;
       p.onGround = false;
-      addParticles(p.x + p.w/2, p.y + p.h, 10, "#fff2a6");
+      addParticles(p.x + p.w / 2, p.y + p.h, 10, "#fff2a6");
     }
     state.jumpWasDown = jumpDown;
+
+    if (state.activePower === "rocket") {
+      p.vy = Math.min(p.vy, -5.3);
+      p.vy -= 0.055;
+    } else if (!p.onGround || p.vy < 0) {
+      p.vy += p.gravity;
+    }
 
     p.x += p.vx;
     p.y += p.vy;
@@ -792,24 +799,29 @@
     if (p.x > canvas.width + 16) p.x = -p.w;
     if (p.x + p.w < -16) p.x = canvas.width;
 
-    // Platform collision: forgiving landing, only when moving downward.
+    // Landing only happens while falling. On landing, velocity becomes zero
+    // so the player can choose the next jump instead of being launched again.
+    const wasOnGround = p.onGround;
     p.onGround = false;
-    if (p.vy >= -1) {
+    if (p.vy >= 0) {
       for (const plat of state.platforms) {
+        const playerBottom = p.y + p.h;
         if (p.x + p.w * 0.82 > plat.x &&
             p.x + p.w * 0.18 < plat.x + plat.w &&
-            p.y + p.h > plat.y - 8 &&
-            p.y + p.h < plat.y + plat.h + Math.max(18, p.vy + 16)) {
+            playerBottom >= plat.y - 2 &&
+            playerBottom <= plat.y + plat.h + Math.max(14, p.vy + 10)) {
           p.y = plat.y - p.h;
-          p.vy = p.jumpPower;
+          p.vy = 0;
           p.jumpsLeft = 2;
           p.onGround = true;
-          state.combo++;
-          state.bestCombo = Math.max(state.bestCombo, state.combo);
-          const jumpFt = Math.max(0, Math.round((state.sceneProgress - state.lastBounceWorld) / 12));
-          state.biggestJump = Math.max(state.biggestJump, jumpFt);
-          state.lastBounceWorld = state.sceneProgress;
-          addParticles(p.x + p.w/2, p.y + p.h, 7, plat.starter ? "#ffd34d" : "#ffffff");
+          if (!wasOnGround) {
+            state.combo++;
+            state.bestCombo = Math.max(state.bestCombo, state.combo);
+            const jumpFt = Math.max(0, Math.round((state.sceneProgress - state.lastBounceWorld) / 12));
+            state.biggestJump = Math.max(state.biggestJump, jumpFt);
+            state.lastBounceWorld = state.sceneProgress;
+            addParticles(p.x + p.w / 2, p.y + p.h, 7, plat.starter ? "#ffd34d" : "#ffffff");
+          }
           break;
         }
       }
@@ -1178,26 +1190,41 @@
     requestAnimationFrame(loop);
   }
 
-  // Controls
-  window.addEventListener("keydown", e => {
-    if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") state.inputLeft = true;
-    if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") state.inputRight = true;
-    if (e.key === "ArrowUp" || e.key === " " || e.key.toLowerCase() === "w") state.jumpPressed = true;
-  });
-  window.addEventListener("keyup", e => {
-    if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") state.inputLeft = false;
-    if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") state.inputRight = false;
-    if (e.key === "ArrowUp" || e.key === " " || e.key.toLowerCase() === "w") state.jumpPressed = false;
+  // Controls: capture arrow keys before the browser can treat them as page keys.
+  const GAME_KEYS = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "Space", "KeyA", "KeyD", "KeyW"]);
+
+  function setKeyState(event, isDown) {
+    const code = event.code;
+    if (GAME_KEYS.has(code)) event.preventDefault();
+    if (code === "ArrowLeft" || code === "KeyA") state.inputLeft = isDown;
+    if (code === "ArrowRight" || code === "KeyD") state.inputRight = isDown;
+    if (code === "ArrowUp" || code === "Space" || code === "KeyW") state.jumpPressed = isDown;
+  }
+
+  window.addEventListener("keydown", event => setKeyState(event, true), { capture: true });
+  window.addEventListener("keyup", event => setKeyState(event, false), { capture: true });
+  window.addEventListener("blur", () => {
+    state.inputLeft = false;
+    state.inputRight = false;
+    state.jumpPressed = false;
+    state.jumpWasDown = false;
   });
 
   function bindHold(id, down, up) {
     const el = document.getElementById(id);
-    const start = e => { e.preventDefault(); down(); };
-    const end = e => { e.preventDefault(); up(); };
-    el.addEventListener("pointerdown", start);
-    el.addEventListener("pointerup", end);
-    el.addEventListener("pointercancel", end);
-    el.addEventListener("pointerleave", end);
+    const start = event => {
+      event.preventDefault();
+      el.setPointerCapture?.(event.pointerId);
+      down();
+    };
+    const end = event => {
+      event.preventDefault();
+      up();
+    };
+    el.addEventListener("pointerdown", start, { passive: false });
+    el.addEventListener("pointerup", end, { passive: false });
+    el.addEventListener("pointercancel", end, { passive: false });
+    el.addEventListener("lostpointercapture", end, { passive: false });
   }
 
   bindHold("leftBtn", () => state.inputLeft = true, () => state.inputLeft = false);

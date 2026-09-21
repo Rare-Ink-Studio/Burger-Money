@@ -1,0 +1,43 @@
+name: Burger Money Passport game release
+on:
+  push:
+    paths:
+      - .github/workflows/oh261-burger-passport-publish.yml
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply source-pinned full-file update and verify
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,base64,gzip,subprocess,re
+          p=Path('index.html')
+          def blob(b):return hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
+          if blob(p.read_bytes())!='4108993817d559584831cdc8589b7345b521e147':raise SystemExit('Game file changed unexpectedly; refusing to overwrite')
+          instructions=Path('.github/workflows/oh261-burger-passport.yml').read_text()
+          encoded=re.search(r'^\s+PATCH_B64: >-\s*\n\s+([A-Za-z0-9+/=]+)',instructions,re.M)
+          if not encoded:raise SystemExit('Missing prepared full-file update')
+          patch=gzip.decompress(base64.b64decode(encoded.group(1)))
+          if hashlib.sha256(patch).hexdigest()!='1da87270d90817fa8ee5d94f82037ecc8f705306d5adb303fc70a0d8a686f043':raise SystemExit('Patch integrity mismatch')
+          Path('/tmp/burger.patch').write_bytes(patch)
+          subprocess.run(['git','apply','--check','/tmp/burger.patch'],check=True)
+          subprocess.run(['git','apply','/tmp/burger.patch'],check=True)
+          if blob(p.read_bytes())!='a2813284becd89c6c2077659a223c024c70fee73':raise SystemExit('Unexpected game output')
+          s=p.read_text()
+          assert 'onehome_burger_money_leaderboard' in s and 'OH_GAME_LAUNCH' in s and 'Score saved.' in s
+          assert 'Guest play' not in s and s.count('function startGame()')==1
+          import re as regex
+          Path('/tmp/burger-script.js').write_text('\n'.join(regex.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>',s)))
+          Path('Burger_Money_Final_Polished_Sound_Mobile.html').write_bytes(p.read_bytes())
+          Path('.github/workflows/oh261-burger-passport.yml').unlink()
+          print('PASS pinned Burger Money full game and Passport score flow')
+          PY
+          node --check /tmp/burger-script.js
+          git add index.html Burger_Money_Final_Polished_Sound_Mobile.html .github/workflows/oh261-burger-passport.yml
+          git -c user.name='Rare Ink Studio game updates' -c user.email='actions@users.noreply.github.com' commit -m 'Burger Money: signed-in Passport scores and live game leaderboards'
+          git push origin HEAD:main

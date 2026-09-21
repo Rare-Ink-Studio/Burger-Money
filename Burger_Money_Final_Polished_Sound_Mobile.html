@@ -342,6 +342,9 @@
 #scoreboardOverlay .bm-board-heading h2{font-size:clamp(23px,4vw,36px);margin:0;color:#ffe079;line-height:1.12;}
 #scoreboardOverlay .bm-tab{font-size:13px;}
 @media(max-width:580px){#scoreboardOverlay .bm-game-art{width:58px;height:62px;background-size:250px auto;}#scoreboardOverlay .bm-podium{grid-template-columns:1fr;}#scoreboardOverlay .bm-podium-card{display:grid;grid-template-columns:37px minmax(0,1fr) auto;align-items:center;padding:9px;}#scoreboardOverlay .bm-place{font-size:15px;}#scoreboardOverlay .bm-person{margin:0;}#scoreboardOverlay .bm-value{font-size:18px;}#scoreboardOverlay .bm-meta{display:none;}}
+
+#scoreboardOverlay .bm-handle{font-size:12px;color:#f5d2fa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#scoreboardOverlay .bm-run-handle{display:block;font-size:11px;color:#efc8f2;font-weight:400;}
 </style>
 </head>
 <body>
@@ -533,6 +536,58 @@
     boardMode: "overall"
   };
 
+  const SUPABASE_URL="https://fshvettlltcujmwvikfq.supabase.co";
+  const SUPABASE_ANON_KEY="sb_publishable_ARrX-vYhy8l-yhs6384S_g_n6214taB";
+  const GAME_RESULT_URL=SUPABASE_URL+"/functions/v1/onehome-game-result";
+  const GAME_KEY="burger_money";
+  const GAME_ORIGIN="https://rare-ink-studio.github.io";
+  const HOME_ORIGINS=new Set(["https://doodlabs.app","https://one-home-test.netlify.app"]);
+  const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  let passportLaunch=null,passportInfo=null,lastSubmittedScore=-1;
+  function validPassportLaunch(data){
+    const expires=Date.parse(String(data?.expires_at||""));
+    return data?.game_key===GAME_KEY&&data?.target_origin===GAME_ORIGIN&&
+      uuidPattern.test(String(data?.session_id||""))&&/^[0-9a-f]{64}$/.test(String(data?.capability||""))&&
+      Number.isFinite(expires)&&expires>Date.now()&&expires<=Date.now()+91*60000;
+  }
+  function postReady(origin){
+    if(window.parent===window||!HOME_ORIGINS.has(origin))return;
+    window.parent.postMessage({type:"OH_GAME_READY",version:1,game_key:GAME_KEY},origin);
+  }
+  window.addEventListener("message",event=>{
+    if(event.source!==window.parent||!HOME_ORIGINS.has(event.origin))return;
+    const data=event.data;
+    if(data?.type==="OH_GAME_PING"&&data.game_key===GAME_KEY){postReady(event.origin);return;}
+    if(data?.type!=="OH_GAME_LAUNCH"||!validPassportLaunch(data))return;
+    passportLaunch=Object.freeze({game_key:GAME_KEY,target_origin:GAME_ORIGIN,session_id:String(data.session_id),capability:String(data.capability),expires_at:String(data.expires_at)});
+    passportInfo=Object.freeze({username:String(data.passport?.username||"").slice(0,64),display_name:String(data.passport?.display_name||"").slice(0,64)});
+    if(state.running&&state.score>lastSubmittedScore)void submitPassportResult(false);
+    if(document.getElementById("scoreboardOverlay").style.display==="flex")void renderBoard(state.boardMode||"overall");
+  });
+  try{postReady(new URL(document.referrer).origin);}catch(_e){}
+  async function submitPassportResult(completed){
+    if(!validPassportLaunch(passportLaunch)||!Number.isSafeInteger(state.score)||state.score<=0||state.score>1000000||state.score===lastSubmittedScore)return false;
+    const currentScore=state.score;
+    const detail={
+      money:Math.max(0,Math.min(1000000,Math.round(state.money))),
+      time_ms:Math.max(0,Math.min(86400000,Math.round(state.elapsed*1000))),
+      jump_ft:Math.max(0,Math.min(1000000,Math.round(state.biggestJump))),
+      combo:Math.max(0,Math.min(1000000,Math.round(state.bestCombo))),
+      level:Math.min(4,Math.max(1,state.levelIndex+1)),completed:!!completed
+    };
+    const payload={game_key:GAME_KEY,session_id:passportLaunch.session_id,capability:passportLaunch.capability,
+      event_id:"burger_money:"+crypto.randomUUID(),subgame:GAME_KEY,mode:"arcade",score:currentScore,detail};
+    try{
+      const response=await fetch(GAME_RESULT_URL,{method:"POST",mode:"cors",credentials:"omit",cache:"no-store",headers:{apikey:SUPABASE_ANON_KEY,"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok||!data.accepted)throw Error(data.error||"Score rejected");
+      lastSubmittedScore=Math.max(lastSubmittedScore,currentScore);
+      showToast("Score saved.",1200);
+      if(document.getElementById("scoreboardOverlay").style.display==="flex")void renderBoard(state.boardMode||"overall");
+      return true;
+    }catch(error){console.error("Burger Money score save",error);showToast("Score not saved.",1800);return false;}
+  }
+
   const STORE_KEY = "burger_money_meal_quest_boards_v4";
   const emptyBoards = () => ({ overall: [], fastest: [], money: [], jump: [], combo: [] });
 
@@ -711,6 +766,7 @@
   }
 
   function nextLevel() {
+    if(state.levelIndex<levels.length-1)void submitPassportResult(false);
     state.levelIndex++;
     if (state.levelIndex >= levels.length) {
       finishGame(true);
@@ -738,6 +794,12 @@
   }
 
   function startGame() {
+if(!validPassportLaunch(passportLaunch)){
+  try{postReady(new URL(document.referrer).origin);}catch(_e){}
+  showToast("Passport connection unavailable.",1800);
+  return;
+}
+lastSubmittedScore=-1;
     document.getElementById("startScreen").style.display = "none";
     document.getElementById("howScreen").style.display = "none";
     document.getElementById("gameOverScreen").style.display = "none";
@@ -785,6 +847,7 @@
       date: new Date().toLocaleDateString()
     };
     maybeSaveScores(stats);
+    void submitPassportResult(!!won);
     document.getElementById("gameOverTitle").textContent = won ? "Meal Quest Complete!" : "Run Over!";
     document.getElementById("finalStats").innerHTML =
       "Score: <b>" + stats.score + "</b><br>" +
@@ -819,11 +882,7 @@
       }
     }
 
-    let name = "Player";
-    if (qualifies) {
-      name = prompt("You made a Top 10 board! Enter your name:", localStorage.getItem("burger_money_last_name") || "Player") || "Player";
-      localStorage.setItem("burger_money_last_name", name);
-    }
+    const name=String(passportInfo?.display_name||passportInfo?.username||"Player").slice(0,64);
 
     for (const [key, value, highWins] of checks) {
       boards[key] = boards[key] || [];
@@ -1333,44 +1392,57 @@
   window.hideScoreboard = () => {
     document.getElementById("scoreboardOverlay").style.display = "none";
   };
-  window.renderBoard = (mode) => {
-    const labels = { overall: "Overall Score", fastest: "Fastest Finish", money: "Most Money", jump: "Biggest Jump", combo: "Best Combo" };
-    if (!Object.prototype.hasOwnProperty.call(labels, mode)) mode = "overall";
-    state.boardMode = mode;
-    document.querySelectorAll("#scoreboardOverlay .bm-tab").forEach(tab => {
-      tab.setAttribute("aria-pressed", String(tab.dataset.bmMode === mode));
-    });
-    const rows = readBoards()[mode] || [];
+  window.renderBoard = async (mode) => {
+    const labels = { overall: "Score", fastest: "Fastest Finish", money: "Most Money", jump: "Biggest Jump", combo: "Best Combo" };
+    if (!Object.prototype.hasOwnProperty.call(labels,mode)) mode="overall";
+    state.boardMode=mode;
+    const requestMode=mode;
+    document.querySelectorAll("#scoreboardOverlay .bm-tab").forEach(tab=>tab.setAttribute("aria-pressed",String(tab.dataset.bmMode===mode)));
+    const target=document.getElementById("boardContent");
     const formatValue = value => {
-      const n = Number(value);
-      if (!Number.isFinite(n)) return "—";
-      if (mode === "fastest") return n.toFixed(1) + "s";
-      if (mode === "money") return "$" + Math.round(n).toLocaleString();
-      if (mode === "jump") return Math.round(n).toLocaleString() + " ft";
+      const n=Number(value);
+      if(!Number.isFinite(n)) return "—";
+      if(mode==="fastest")return n.toFixed(1)+"s";
+      if(mode==="money")return "$"+Math.round(n).toLocaleString();
+      if(mode==="jump")return Math.round(n).toLocaleString()+" ft";
       return Math.round(n).toLocaleString();
     };
-    const safeName = row => escapeHtml(String(row?.name || "Player").slice(0,48));
-    const medals = ["#1", "#2", "#3"];
-    let html = '<h3 class="bm-board-subhead">' + labels[mode] + '</h3>';
-    if (!rows.length) {
-      html += '<div class="bm-empty">No scores yet.</div>';
-    } else {
-      html += '<div class="bm-podium">' + rows.slice(0,3).map((row,i) =>
-        '<div class="bm-podium-card" data-place="' + (i+1) + '">' +
-        '<div class="bm-place" aria-label="Rank ' + (i+1) + '">' + medals[i] + '</div>' +
-        '<div class="bm-person">' + safeName(row) + '</div>' +
-        '<div class="bm-value">' + formatValue(row.value) + '</div>' +
-        '<div class="bm-meta">#' + (i+1) + '</div></div>'
-      ).join('') + '</div>';
-      if (rows.length > 3) {
-        html += '<div class="bm-run-list">' + rows.slice(3,10).map((row,i) =>
-          '<div class="bm-run"><div class="bm-run-rank">#' + (i+4) + '</div>' +
-          '<div class="bm-run-name">' + safeName(row) + '</div>' +
-          '<div class="bm-run-value">' + formatValue(row.value) + '</div></div>'
-        ).join('') + '</div>';
+    let rows=[];
+    if (validPassportLaunch(passportLaunch)) {
+      target.textContent="Loading scores…";
+      try {
+        const resp=await fetch(SUPABASE_URL+"/rest/v1/rpc/onehome_burger_money_leaderboard",{
+          method:"POST",mode:"cors",credentials:"omit",cache:"no-store",
+          headers:{apikey:SUPABASE_ANON_KEY,"Content-Type":"application/json"},
+          body:JSON.stringify({p_category:mode,p_limit:10})
+        });
+        if(!resp.ok) throw Error("Could not load scoreboard");
+        rows=await resp.json();
+        if(!Array.isArray(rows))throw Error("Could not load scoreboard");
+      }catch(error){
+        console.error(error);
+        if(state.boardMode===requestMode)target.textContent="Could not load scoreboard.";
+        return;
       }
+      if(state.boardMode!==requestMode)return;
+    } else {
+      rows=(readBoards()[mode]||[]).slice(0,10).map((row,i)=>({
+        rank:i+1,display_name:String(row?.name||"Player"),passport_username:"",score:row?.value
+      }));
     }
-    document.getElementById("boardContent").innerHTML = html;
+    const fmtName=row=>escapeHtml(String(row.display_name||row.passport_username||"Player").slice(0,64));
+    const fmtHandle=row=>row.passport_username?'<div class="bm-handle">@'+escapeHtml(String(row.passport_username).slice(0,64))+'</div>':'';
+    let html='<h3 class="bm-board-subhead">'+labels[mode]+'</h3>';
+    if(!rows.length)html+='<div class="bm-empty">No scores yet.</div>';
+    else {
+      html+='<div class="bm-podium">'+rows.slice(0,3).map((row,i)=>
+        '<div class="bm-podium-card" data-place="'+(i+1)+'"><div class="bm-place">#'+(i+1)+'</div><div class="bm-person">'+fmtName(row)+'</div>'+fmtHandle(row)+'<div class="bm-value">'+formatValue(row.score)+'</div></div>'
+      ).join('')+'</div>';
+      if(rows.length>3)html+='<div class="bm-run-list">'+rows.slice(3,10).map((row,i)=>
+        '<div class="bm-run"><div class="bm-run-rank">#'+(i+4)+'</div><div class="bm-run-name">'+fmtName(row)+(row.passport_username?'<span class="bm-run-handle">@'+escapeHtml(String(row.passport_username).slice(0,64))+'</span>':'')+'</div><div class="bm-run-value">'+formatValue(row.score)+'</div></div>'
+      ).join('')+'</div>';
+    }
+    target.innerHTML=html;
   };
   window.clearBoards = () => {
     if (confirm("Reset saved scoreboards on this browser?")) {

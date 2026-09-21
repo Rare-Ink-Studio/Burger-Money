@@ -242,6 +242,95 @@
       .badgeRow { grid-template-columns: 1fr; }
       #topCenter { top: 62px; width: 60vw; }
     }
+
+    /* Burger Money: diner-tile scoreboard; local saved scores remain untouched. */
+    #scoreboardOverlay {
+      background: rgba(13, 3, 23, .88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: clamp(8px, 3vw, 22px);
+    }
+    #scoreboardOverlay .scorePanel {
+      position: relative;
+      width: min(900px, 100%);
+      max-height: min(90dvh, 800px);
+      padding: clamp(14px, 3vw, 28px);
+      background: linear-gradient(160deg, #221137, #130a24 72%);
+      color: #fff8dc;
+      border: 2px solid #ffc93e;
+      border-radius: 22px;
+      box-shadow: 0 28px 75px rgba(0,0,0,.72), inset 0 0 0 1px rgba(255,232,147,.16);
+      text-align: left;
+      overscroll-behavior: contain;
+    }
+    #scoreboardOverlay .scorePanel::before {
+      content: "";
+      display: block;
+      height: 9px;
+      margin: -14px -14px 19px;
+      border-radius: 18px 18px 0 0;
+      background: repeating-conic-gradient(#ffd24c 0% 25%, #3e2258 0% 50%) 0 0 / 18px 18px;
+    }
+    .bm-board-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .bm-board-icon { font-size: clamp(30px, 5vw, 44px); filter: drop-shadow(0 4px 0 #8d3d09); }
+    .bm-kicker { color: #ffca47; font-size: 12px; letter-spacing: .22em; font-weight: 900; }
+    #scoreboardOverlay .bm-board-heading h2 {
+      margin: 3px 0 0;
+      font-size: clamp(24px, 5vw, 39px);
+      line-height: 1.05;
+      letter-spacing: .06em;
+      color: #fff7cf;
+      text-shadow: 0 3px 0 #793c00;
+    }
+    #scoreboardOverlay .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 21px; }
+    #scoreboardOverlay .bm-tab {
+      margin: 0; padding: 10px 13px; min-height: 42px;
+      color: #f5dfae; background: #36234f;
+      border: 1px solid #674b7e; border-radius: 11px;
+      font-size: 13px; font-weight: 800; box-shadow: none;
+    }
+    #scoreboardOverlay .bm-tab[aria-pressed="true"] {
+      background: linear-gradient(#ffe68b,#ffbb29); color: #321400;
+      border-color: #fff3b4; box-shadow: 0 3px 0 #935008;
+    }
+    .bm-board-subhead { color: #fff1bf; font-weight: 900; margin: 0 0 13px; font-size: 17px; }
+    .bm-podium { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; align-items: stretch; margin: 12px 0 20px; }
+    .bm-podium-card {
+      min-width: 0; border: 1px solid rgba(255,215,96,.48);
+      background: linear-gradient(155deg, #482252, #261332 80%);
+      border-radius: 16px; padding: 14px 10px; text-align: center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.15),0 8px 18px rgba(0,0,0,.2);
+    }
+    .bm-podium-card[data-place="1"] { background: linear-gradient(150deg,#784019,#3b1d36 82%); border-color: #ffe185; box-shadow: 0 0 18px rgba(255,191,37,.19); }
+    .bm-place { font-size: 29px; line-height: 1.15; }
+    .bm-person { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 900; margin: 7px 0 8px; font-size: 15px; }
+    .bm-value { color: #ffe179; font-size: clamp(18px,3.1vw,28px); font-weight: 900; overflow-wrap: anywhere; }
+    .bm-podium-card[data-place="1"] .bm-value { color: #fff5b6; }
+    .bm-meta { color: #dcc8e4; font-size: 12px; margin-top: 7px; }
+    .bm-run-list { display: grid; gap: 8px; margin-bottom: 14px; }
+    .bm-run {
+      display: grid; grid-template-columns: 38px minmax(0,1fr) auto;
+      align-items: center; gap: 10px; padding: 11px 12px;
+      border: 1px solid #473351; border-radius: 12px; background: rgba(255,255,255,.055);
+    }
+    .bm-run-rank { font-weight: 900; color: #ffd45d; font-size: 16px; }
+    .bm-run-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+    .bm-run-value { color: #ffe280; font-weight: 900; white-space: nowrap; }
+    .bm-empty { border: 1px dashed #82648e; border-radius: 14px; text-align: center; padding: 32px 12px; color: #ebd5fa; }
+    .bm-board-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    #scoreboardOverlay .bm-reset { margin: 0 auto 0 0; border: 1px solid #65456a; color: #dec7e2; background: transparent; box-shadow: none; font-size: 12px; padding: 10px 12px; }
+    #scoreboardOverlay .bm-close { margin: 0; min-width: 94px; }
+    @media (max-width: 580px) {
+      #scoreboardOverlay .scorePanel { padding: 14px; }
+      .bm-podium { grid-template-columns: 1fr; }
+      .bm-podium-card { display: grid; grid-template-columns: 34px minmax(0,1fr) auto; text-align: left; align-items: center; gap: 8px; padding: 10px 12px; }
+      .bm-place { font-size: 22px; }
+      .bm-person { margin: 0; }
+      .bm-value { font-size: 18px; }
+      .bm-meta { display: none; }
+      #scoreboardOverlay .bm-tab { font-size: 12px; padding: 9px 10px; }
+      #scoreboardOverlay .bm-board-heading h2 { font-size: 25px; }
+    }
   </style>
 </head>
 <body>
@@ -276,10 +365,6 @@
     <div class="panel">
       <h1>🍔 Burger Money</h1>
       <h2>Meal Quest</h2>
-      <p class="sub">
-        Collect burger money, climb longer scenes, dodge DROP obstacles, and earn enough for the ultimate meal prize.
-        This is a fast-food-inspired arcade game with saved local scoreboards.
-      </p>
       <div class="badgeRow">
         <div class="badge">🪙 Collect money and keep combos going.</div>
         <div class="badge">☁️ Jump cloud-to-cloud through longer scenes.</div>
@@ -322,18 +407,17 @@
   </div>
 
   <div id="scoreboardOverlay">
-    <div class="scorePanel">
-      <h2>🏆 Top 10 Scoreboards</h2>
+    <div class="scorePanel" role="dialog" aria-modal="true" aria-label="Burger Money high scores">
+      <div class="bm-board-heading"><span class="bm-board-icon" aria-hidden="true">🍔</span><div><div class="bm-kicker">BURGER MONEY</div><h2>HIGH SCORES <span aria-hidden="true">🏆</span></h2></div></div>
       <div class="tabs">
-        <button class="small" onclick="renderBoard('overall')">Overall Score</button>
-        <button class="small" onclick="renderBoard('fastest')">Fastest Finish</button>
-        <button class="small" onclick="renderBoard('money')">Most Money</button>
-        <button class="small" onclick="renderBoard('jump')">Biggest Jump</button>
-        <button class="small" onclick="renderBoard('combo')">Best Combo</button>
+        <button class="small bm-tab" data-bm-mode="overall" type="button" aria-pressed="false" onclick="renderBoard('overall')">🏆 Overall Score</button>
+        <button class="small bm-tab" data-bm-mode="fastest" type="button" aria-pressed="false" onclick="renderBoard('fastest')">⏱️ Fastest Finish</button>
+        <button class="small bm-tab" data-bm-mode="money" type="button" aria-pressed="false" onclick="renderBoard('money')">🪙 Most Money</button>
+        <button class="small bm-tab" data-bm-mode="jump" type="button" aria-pressed="false" onclick="renderBoard('jump')">☁️ Biggest Jump</button>
+        <button class="small bm-tab" data-bm-mode="combo" type="button" aria-pressed="false" onclick="renderBoard('combo')">⚡ Best Combo</button>
       </div>
       <div id="boardContent"></div>
-      <button class="pink" onclick="clearBoards()">Reset Saved Boards</button>
-      <button onclick="hideScoreboard()">Close</button>
+      <div class="bm-board-actions"><button class="bm-reset" onclick="clearBoards()">Reset Saved Boards</button><button class="bm-close" onclick="hideScoreboard()">Close</button></div>
     </div>
   </div>
 
@@ -1254,29 +1338,41 @@
     document.getElementById("scoreboardOverlay").style.display = "none";
   };
   window.renderBoard = (mode) => {
+    const labels = { overall: "Overall Score", fastest: "Fastest Finish", money: "Most Money", jump: "Biggest Jump", combo: "Best Combo" };
+    if (!Object.prototype.hasOwnProperty.call(labels, mode)) mode = "overall";
     state.boardMode = mode;
-    const boards = readBoards();
-    const labels = {
-      overall: "Overall Score",
-      fastest: "Fastest Finish",
-      money: "Most Money",
-      jump: "Biggest Jump",
-      combo: "Best Combo"
+    document.querySelectorAll("#scoreboardOverlay .bm-tab").forEach(tab => {
+      tab.setAttribute("aria-pressed", String(tab.dataset.bmMode === mode));
+    });
+    const rows = readBoards()[mode] || [];
+    const formatValue = value => {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return "—";
+      if (mode === "fastest") return n.toFixed(1) + "s";
+      if (mode === "money") return "$" + Math.round(n).toLocaleString();
+      if (mode === "jump") return Math.round(n).toLocaleString() + " ft";
+      return Math.round(n).toLocaleString();
     };
-    const rows = boards[mode] || [];
-    let html = "<h3>" + labels[mode] + "</h3>";
+    const safeName = row => escapeHtml(String(row?.name || "Player").slice(0,48));
+    const medals = ["🥇", "🥈", "🥉"];
+    let html = '<h3 class="bm-board-subhead">' + labels[mode] + '</h3>';
     if (!rows.length) {
-      html += "<p>No scores yet. Play a run to save the first score.</p>";
+      html += '<div class="bm-empty">No scores yet.</div>';
     } else {
-      html += "<table class='scoreTable'><thead><tr><th>#</th><th>Name</th><th>Value</th><th>Money</th><th>Time</th><th>Date</th></tr></thead><tbody>";
-      rows.forEach((r, i) => {
-        let value = r.value;
-        if (mode === "fastest") value = Number(value).toFixed(1) + "s";
-        else if (mode === "money") value = "$" + Number(value).toFixed(0);
-        else if (mode === "jump") value = Number(value).toFixed(0) + " ft";
-        html += "<tr><td>" + (i+1) + "</td><td>" + escapeHtml(r.name) + "</td><td><b>" + value + "</b></td><td>$" + Number(r.stats.money).toFixed(0) + "</td><td>" + Number(r.stats.time).toFixed(1) + "s</td><td>" + escapeHtml(r.date || "") + "</td></tr>";
-      });
-      html += "</tbody></table>";
+      html += '<div class="bm-podium">' + rows.slice(0,3).map((row,i) =>
+        '<div class="bm-podium-card" data-place="' + (i+1) + '">' +
+        '<div class="bm-place" aria-label="Rank ' + (i+1) + '">' + medals[i] + '</div>' +
+        '<div class="bm-person">' + safeName(row) + '</div>' +
+        '<div class="bm-value">' + formatValue(row.value) + '</div>' +
+        '<div class="bm-meta">#' + (i+1) + '</div></div>'
+      ).join('') + '</div>';
+      if (rows.length > 3) {
+        html += '<div class="bm-run-list">' + rows.slice(3,10).map((row,i) =>
+          '<div class="bm-run"><div class="bm-run-rank">#' + (i+4) + '</div>' +
+          '<div class="bm-run-name">' + safeName(row) + '</div>' +
+          '<div class="bm-run-value">' + formatValue(row.value) + '</div></div>'
+        ).join('') + '</div>';
+      }
     }
     document.getElementById("boardContent").innerHTML = html;
   };

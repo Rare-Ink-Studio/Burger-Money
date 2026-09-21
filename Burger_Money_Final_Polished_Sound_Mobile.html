@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Burger Money: Meal Quest</title>
   <style>
+    :root { --burger-bg: url("burger_money_background.png"); }
     html, body {
       margin: 0;
       padding: 0;
@@ -22,28 +23,6 @@
       background: #160024;
     }
 
-    #soundBtn {
-      position: fixed;
-      right: max(12px, env(safe-area-inset-right));
-      bottom: max(96px, calc(env(safe-area-inset-bottom) + 96px));
-      z-index: 7;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,.55);
-      background: rgba(0,0,0,.28);
-      color: white;
-      font-size: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: auto;
-      box-shadow: 0 6px 16px rgba(0,0,0,.32);
-      backdrop-filter: blur(4px);
-    }
-
-    #soundBtn:active { transform: scale(.96); }
-
     .screen {
       position: fixed;
       inset: 0;
@@ -51,9 +30,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background:
-        radial-gradient(circle at center, rgba(255,210,60,.15), transparent 28%),
-        linear-gradient(180deg, rgba(20,0,35,.94), rgba(5,0,10,.98));
+      background-image:
+        linear-gradient(180deg, rgba(20, 0, 35, .42), rgba(5, 0, 10, .68)),
+        radial-gradient(circle at center, rgba(255, 210, 60, .16), transparent 34%),
+        var(--burger-bg);
+      background-position: center, center, center;
+      background-size: cover, cover, cover;
+      background-repeat: no-repeat;
       color: white;
       text-align: center;
       padding: 18px;
@@ -141,7 +124,7 @@
       position: fixed;
       left: 0;
       right: 0;
-      bottom: max(12px, env(safe-area-inset-bottom));
+      bottom: 12px;
       z-index: 6;
       pointer-events: none;
     }
@@ -164,10 +147,10 @@
       box-shadow: 0 6px 16px rgba(0,0,0,.3);
     }
 
-    #leftBtn { left: max(15px, env(safe-area-inset-left)); }
-    #rightBtn { left: max(86px, calc(env(safe-area-inset-left) + 86px)); }
+    #leftBtn { left: 15px; }
+    #rightBtn { left: 86px; }
     #jumpBtn {
-      right: max(15px, env(safe-area-inset-right));
+      right: 15px;
       width: 72px;
       height: 72px;
       background: rgba(255,211,77,.30);
@@ -255,41 +238,114 @@
     }
 
     @media (max-width: 620px) {
-      .screen { padding: 10px; align-items: flex-start; padding-top: max(12px, env(safe-area-inset-top)); }
-      .panel { padding: 14px; max-height: 94vh; }
-      h1 { font-size: 26px; }
-      h2 { font-size: 20px; }
-      .sub { font-size: 14px; }
-      .badgeRow { grid-template-columns: 1fr; gap: 6px; margin: 8px 0; }
-      .badge { padding: 7px; font-size: 12px; }
-      button { font-size: 15px; padding: 10px 14px; margin: 4px; }
+      .panel { padding: 14px; }
+      .badgeRow { grid-template-columns: 1fr; }
       #topCenter { top: 62px; width: 60vw; }
-      #topLeft, #topRight { top: max(6px, env(safe-area-inset-top)); }
-      .padButton { width: 64px; height: 64px; }
-      #rightBtn { left: max(92px, calc(env(safe-area-inset-left) + 92px)); }
-      #jumpBtn { width: 78px; height: 78px; }
-      #soundBtn { bottom: max(102px, calc(env(safe-area-inset-bottom) + 102px)); }
     }
 
-    @media (min-width: 900px) and (pointer: coarse) {
-      .padButton { width: 74px; height: 74px; font-size: 20px; }
-      #rightBtn { left: max(104px, calc(env(safe-area-inset-left) + 104px)); }
-      #jumpBtn { width: 92px; height: 92px; }
-      #soundBtn { width: 54px; height: 54px; bottom: max(120px, calc(env(safe-area-inset-bottom) + 120px)); }
+    /* Burger Money: diner-tile scoreboard; local saved scores remain untouched. */
+    #scoreboardOverlay {
+      background: rgba(13, 3, 23, .88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: clamp(8px, 3vw, 22px);
     }
-
-    @media (max-height: 560px) and (orientation: landscape) {
-      .panel { transform: scale(.88); max-height: 108vh; }
-      .badgeRow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      #topCenter { top: 8px; width: 38vw; }
-      .padButton { width: 54px; height: 54px; }
-      #jumpBtn { width: 66px; height: 66px; }
+    #scoreboardOverlay .scorePanel {
+      position: relative;
+      width: min(900px, 100%);
+      max-height: min(90dvh, 800px);
+      padding: clamp(14px, 3vw, 28px);
+      background: linear-gradient(160deg, #221137, #130a24 72%);
+      color: #fff8dc;
+      border: 2px solid #ffc93e;
+      border-radius: 22px;
+      box-shadow: 0 28px 75px rgba(0,0,0,.72), inset 0 0 0 1px rgba(255,232,147,.16);
+      text-align: left;
+      overscroll-behavior: contain;
     }
-  </style>
+    #scoreboardOverlay .scorePanel::before {
+      content: "";
+      display: block;
+      height: 9px;
+      margin: -14px -14px 19px;
+      border-radius: 18px 18px 0 0;
+      background: repeating-conic-gradient(#ffd24c 0% 25%, #3e2258 0% 50%) 0 0 / 18px 18px;
+    }
+    .bm-board-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .bm-board-icon { font-size: clamp(30px, 5vw, 44px); filter: drop-shadow(0 4px 0 #8d3d09); }
+    .bm-kicker { color: #ffca47; font-size: 12px; letter-spacing: .22em; font-weight: 900; }
+    #scoreboardOverlay .bm-board-heading h2 {
+      margin: 3px 0 0;
+      font-size: clamp(24px, 5vw, 39px);
+      line-height: 1.05;
+      letter-spacing: .06em;
+      color: #fff7cf;
+      text-shadow: 0 3px 0 #793c00;
+    }
+    #scoreboardOverlay .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 21px; }
+    #scoreboardOverlay .bm-tab {
+      margin: 0; padding: 10px 13px; min-height: 42px;
+      color: #f5dfae; background: #36234f;
+      border: 1px solid #674b7e; border-radius: 11px;
+      font-size: 13px; font-weight: 800; box-shadow: none;
+    }
+    #scoreboardOverlay .bm-tab[aria-pressed="true"] {
+      background: linear-gradient(#ffe68b,#ffbb29); color: #321400;
+      border-color: #fff3b4; box-shadow: 0 3px 0 #935008;
+    }
+    .bm-board-subhead { color: #fff1bf; font-weight: 900; margin: 0 0 13px; font-size: 17px; }
+    .bm-podium { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; align-items: stretch; margin: 12px 0 20px; }
+    .bm-podium-card {
+      min-width: 0; border: 1px solid rgba(255,215,96,.48);
+      background: linear-gradient(155deg, #482252, #261332 80%);
+      border-radius: 16px; padding: 14px 10px; text-align: center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.15),0 8px 18px rgba(0,0,0,.2);
+    }
+    .bm-podium-card[data-place="1"] { background: linear-gradient(150deg,#784019,#3b1d36 82%); border-color: #ffe185; box-shadow: 0 0 18px rgba(255,191,37,.19); }
+    .bm-place { font-size: 29px; line-height: 1.15; }
+    .bm-person { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 900; margin: 7px 0 8px; font-size: 15px; }
+    .bm-value { color: #ffe179; font-size: clamp(18px,3.1vw,28px); font-weight: 900; overflow-wrap: anywhere; }
+    .bm-podium-card[data-place="1"] .bm-value { color: #fff5b6; }
+    .bm-meta { color: #dcc8e4; font-size: 12px; margin-top: 7px; }
+    .bm-run-list { display: grid; gap: 8px; margin-bottom: 14px; }
+    .bm-run {
+      display: grid; grid-template-columns: 38px minmax(0,1fr) auto;
+      align-items: center; gap: 10px; padding: 11px 12px;
+      border: 1px solid #473351; border-radius: 12px; background: rgba(255,255,255,.055);
+    }
+    .bm-run-rank { font-weight: 900; color: #ffd45d; font-size: 16px; }
+    .bm-run-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+    .bm-run-value { color: #ffe280; font-weight: 900; white-space: nowrap; }
+    .bm-empty { border: 1px dashed #82648e; border-radius: 14px; text-align: center; padding: 32px 12px; color: #ebd5fa; }
+    .bm-board-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    #scoreboardOverlay .bm-reset { margin: 0 auto 0 0; border: 1px solid #65456a; color: #dec7e2; background: transparent; box-shadow: none; font-size: 12px; padding: 10px 12px; }
+    #scoreboardOverlay .bm-close { margin: 0; min-width: 94px; }
+    @media (max-width: 580px) {
+      #scoreboardOverlay .scorePanel { padding: 14px; }
+      .bm-podium { grid-template-columns: 1fr; }
+      .bm-podium-card { display: grid; grid-template-columns: 34px minmax(0,1fr) auto; text-align: left; align-items: center; gap: 8px; padding: 10px 12px; }
+      .bm-place { font-size: 22px; }
+      .bm-person { margin: 0; }
+      .bm-value { font-size: 18px; }
+      .bm-meta { display: none; }
+      #scoreboardOverlay .bm-tab { font-size: 12px; padding: 9px 10px; }
+      #scoreboardOverlay .bm-board-heading h2 { font-size: 25px; }
+    }
+  
+/* Existing game art only; ranks 1-3 plus rows 4-10. */
+#scoreboardOverlay{background:linear-gradient(rgba(26,1,39,.56),rgba(9,0,24,.8)),url("burger_money_background.png") center/cover no-repeat;}
+#scoreboardOverlay .scorePanel{background:linear-gradient(130deg,rgba(29,4,46,.9),rgba(20,2,32,.89)),url("burger_money_background.png") center/cover no-repeat;border-color:#ffca50;}
+#scoreboardOverlay .bm-game-art{display:block;flex-shrink:0;width:90px;height:77px;border:2px solid #ffc643;border-radius:12px;background:url("burger_money_background.png") 3% 52%/330px auto no-repeat #25092f;}
+#scoreboardOverlay .bm-podium-card{background:linear-gradient(110deg,rgba(57,8,79,.74),rgba(24,2,40,.94)),url("burger_money_background.png") left bottom/530px auto no-repeat;}
+#scoreboardOverlay .bm-podium-card[data-place="1"]{background:linear-gradient(110deg,rgba(106,39,53,.67),rgba(27,4,47,.9)),url("burger_money_background.png") 3% 51%/530px auto no-repeat;}
+#scoreboardOverlay .bm-place{font-size:17px;color:#ffe079;font-weight:900;}
+#scoreboardOverlay .bm-board-heading h2{font-size:clamp(23px,4vw,36px);margin:0;color:#ffe079;line-height:1.12;}
+#scoreboardOverlay .bm-tab{font-size:13px;}
+@media(max-width:580px){#scoreboardOverlay .bm-game-art{width:58px;height:62px;background-size:250px auto;}#scoreboardOverlay .bm-podium{grid-template-columns:1fr;}#scoreboardOverlay .bm-podium-card{display:grid;grid-template-columns:37px minmax(0,1fr) auto;align-items:center;padding:9px;}#scoreboardOverlay .bm-place{font-size:15px;}#scoreboardOverlay .bm-person{margin:0;}#scoreboardOverlay .bm-value{font-size:18px;}#scoreboardOverlay .bm-meta{display:none;}}
+</style>
 </head>
 <body>
-  <canvas id="game"></canvas>
-  <button id="soundBtn" aria-label="Toggle sound">🔊</button>
+  <canvas id="game" tabindex="0" aria-label="Burger Money game"></canvas>
 
   <div id="hud">
     <div id="topLeft">
@@ -316,26 +372,7 @@
 
   <div id="toast"></div>
 
-  <div id="startScreen" class="screen">
-    <div class="panel">
-      <h1>🍔 Burger Money</h1>
-      <h2>Meal Quest</h2>
-      <p class="sub">
-        Collect burger money, climb longer scenes, dodge DROP obstacles, and earn enough for the ultimate meal prize.
-        This is a fast-food-inspired arcade game with saved local scoreboards.
-      </p>
-      <div class="badgeRow">
-        <div class="badge">🪙 Collect money and keep combos going.</div>
-        <div class="badge">☁️ Jump cloud-to-cloud through longer scenes.</div>
-        <div class="badge">🚀 Grab power-ups: rocket, magnet, shield, mega jump.</div>
-        <div class="badge">🚫 Hit DROP and you restart at the bottom of that scene.</div>
-      </div>
-      <button onclick="startGame()">Play</button>
-      <button class="blue" onclick="showHow()">How to Play</button>
-      <button class="green" onclick="showScoreboard()">Scoreboards</button>
-      <p class="sub" style="font-size:12px;margin-top:12px;">Keyboard: arrows/A-D to move, up/space/W to jump. Mobile: use the buttons.</p>
-    </div>
-  </div>
+  <div id="startScreen" class="screen"><div class="panel"><h1>🍔 Burger Money</h1><h2>Meal Quest</h2><button onclick="startGame()">Play</button><button class="blue" onclick="showHow()">How to Play</button><button class="green" onclick="showScoreboard()">Scoreboard</button></div></div>
 
   <div id="howScreen" class="screen" style="display:none;">
     <div class="panel">
@@ -366,18 +403,17 @@
   </div>
 
   <div id="scoreboardOverlay">
-    <div class="scorePanel">
-      <h2>🏆 Top 10 Scoreboards</h2>
+    <div class="scorePanel" role="dialog" aria-modal="true" aria-label="Burger Money high scores">
+      <div class="bm-board-heading"><span class="bm-game-art" aria-hidden="true"></span><h2>BURGER MONEY<br>SCOREBOARD</h2></div>
       <div class="tabs">
-        <button class="small" onclick="renderBoard('overall')">Overall Score</button>
-        <button class="small" onclick="renderBoard('fastest')">Fastest Finish</button>
-        <button class="small" onclick="renderBoard('money')">Most Money</button>
-        <button class="small" onclick="renderBoard('jump')">Biggest Jump</button>
-        <button class="small" onclick="renderBoard('combo')">Best Combo</button>
+        <button class="small bm-tab" data-bm-mode="overall" type="button" aria-pressed="false" onclick="renderBoard('overall')">Score</button>
+        <button class="small bm-tab" data-bm-mode="fastest" type="button" aria-pressed="false" onclick="renderBoard('fastest')">Fastest</button>
+        <button class="small bm-tab" data-bm-mode="money" type="button" aria-pressed="false" onclick="renderBoard('money')">Money</button>
+        <button class="small bm-tab" data-bm-mode="jump" type="button" aria-pressed="false" onclick="renderBoard('jump')">Jump</button>
+        <button class="small bm-tab" data-bm-mode="combo" type="button" aria-pressed="false" onclick="renderBoard('combo')">Combo</button>
       </div>
       <div id="boardContent"></div>
-      <button class="pink" onclick="clearBoards()">Reset Saved Boards</button>
-      <button onclick="hideScoreboard()">Close</button>
+      <div class="bm-board-actions"><button class="bm-close" onclick="hideScoreboard()">Close</button></div>
     </div>
   </div>
 
@@ -398,10 +434,16 @@
     if (state.running) rebuildScene("resize");
   });
 
+  // Burger Money neon backdrop is embedded directly in this HTML.
+  // This keeps the home screen and gameplay background working after one-file GitHub uploads.
+  const BACKGROUND_IMAGE_DATA = "burger_money_background.png";
+  document.documentElement.style.setProperty("--burger-bg", 'url("burger_money_background.png")');
+
   const ASSET_URLS = {
     player: "https://i.ibb.co/r2qpJbRj/clown.png",
     coin: "https://i.ibb.co/4w1bcGcf/burgermoney.png",
-    power: "https://i.ibb.co/27XkGpn7/power.png"
+    power: "https://i.ibb.co/27XkGpn7/power.png",
+    background: BACKGROUND_IMAGE_DATA
   };
 
   function loadImage(src) {
@@ -418,72 +460,9 @@
   const img = {
     player: loadImage(ASSET_URLS.player),
     coin: loadImage(ASSET_URLS.coin),
-    power: loadImage(ASSET_URLS.power)
+    power: loadImage(ASSET_URLS.power),
+    background: loadImage(ASSET_URLS.background)
   };
-
-  const audio = {
-    ctx: null,
-    muted: localStorage.getItem("burger_money_sound_muted") === "1",
-    unlocked: false
-  };
-
-  function unlockAudio() {
-    if (audio.muted) return;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    if (!audio.ctx) audio.ctx = new AC();
-    if (audio.ctx.state === "suspended") audio.ctx.resume();
-    audio.unlocked = true;
-    updateSoundButton();
-  }
-
-  function tone(freq, duration = 0.08, type = "sine", volume = 0.04, delay = 0) {
-    if (audio.muted) return;
-    unlockAudio();
-    if (!audio.ctx) return;
-    const now = audio.ctx.currentTime + delay;
-    const osc = audio.ctx.createOscillator();
-    const gain = audio.ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, now);
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(volume, now + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-    osc.connect(gain);
-    gain.connect(audio.ctx.destination);
-    osc.start(now);
-    osc.stop(now + duration + 0.02);
-  }
-
-  function sound(name) {
-    if (name === "button") tone(520, .055, "triangle", .025);
-    if (name === "jump") tone(360, .08, "sine", .035);
-    if (name === "bounce") { tone(260, .045, "triangle", .025); tone(420, .055, "triangle", .022, .035); }
-    if (name === "coin") { tone(760, .06, "square", .025); tone(1040, .07, "triangle", .026, .045); }
-    if (name === "power") { tone(520, .06, "sine", .03); tone(780, .07, "sine", .03, .05); tone(1040, .09, "sine", .025, .10); }
-    if (name === "drop") { tone(160, .14, "sawtooth", .045); tone(92, .20, "sawtooth", .035, .08); }
-    if (name === "shield") { tone(300, .05, "triangle", .03); tone(600, .12, "triangle", .03, .04); }
-    if (name === "level") { tone(440, .08, "triangle", .028); tone(660, .09, "triangle", .028, .07); tone(880, .12, "triangle", .028, .15); }
-    if (name === "win") { tone(523, .10, "triangle", .03); tone(659, .10, "triangle", .03, .11); tone(784, .18, "triangle", .03, .23); }
-  }
-
-  function vibe(pattern) {
-    if (navigator.vibrate) navigator.vibrate(pattern);
-  }
-
-  function updateSoundButton() {
-    const btn = document.getElementById("soundBtn");
-    if (btn) btn.textContent = audio.muted ? "🔇" : "🔊";
-  }
-
-  function toggleSound() {
-    audio.muted = !audio.muted;
-    localStorage.setItem("burger_money_sound_muted", audio.muted ? "1" : "0");
-    updateSoundButton();
-    if (!audio.muted) { unlockAudio(); sound("button"); }
-  }
-
-  updateSoundButton();
 
   const levels = [
     {
@@ -606,13 +585,13 @@
       w: size,
       h: size,
       vx: 0,
-      vy: -5,
-      gravity: 0.32,
-      jumpPower: -11.4,
-      speed: 0.70,
-      maxSpeed: 6.7,
+      vy: 0,
+      gravity: 0.62,
+      jumpPower: -13.0,
+      speed: 0.95,
+      maxSpeed: 7.5,
       jumpsLeft: 2,
-      onGround: false,
+      onGround: true,
       invincible: 0
     };
   }
@@ -628,81 +607,64 @@
     const powers = [];
     const obstacles = [];
 
-    const margin = 18;
-    const starterW = Math.min(canvas.width - 40, Math.max(260, canvas.width * 0.64));
-    let x = canvas.width / 2 - starterW / 2;
-    let y = canvas.height - 72;
+    // A deliberate, reachable climbing lane. The previous generator could put
+    // the next safe platform too far to one side, especially on a wide screen.
+    const margin = 26;
+    const starterW = Math.min(canvas.width - margin * 2, Math.max(300, canvas.width * 0.52));
+    let platformW = Math.min(canvas.width - margin * 2, Math.max(178, lvl.platformWidth + 34));
+    let centerX = canvas.width / 2;
+    let y = canvas.height - 78;
+    let routeIndex = 0;
 
-    platforms.push(makePlatform(x, y, starterW, true));
+    platforms.push(makePlatform(centerX - starterW / 2, y, starterW, true));
 
-    // Guaranteed starter ladder so reset/drop never leaves the player without things to jump on.
-    const starterXs = [
-      canvas.width * 0.46,
-      canvas.width * 0.58,
-      canvas.width * 0.42,
-      canvas.width * 0.55,
-      canvas.width * 0.47,
-      canvas.width * 0.62
-    ];
-    for (let i = 0; i < starterXs.length; i++) {
-      y -= 76;
-      const w = Math.min(canvas.width - 56, lvl.platformWidth + 34);
-      x = clamp(starterXs[i] - w / 2, margin, canvas.width - w - margin);
-      platforms.push(makePlatform(x, y, w, false));
-      coins.push(makeCoin(x + w * 0.5 - 18, y - 50, 5));
-    }
+    // Build the entire route as one gentle zig-zag. Every next landing remains
+    // within a comfortable double-jump distance of the platform below it.
+    while ((canvas.height - 78) - y < lvl.height + 1000) {
+      const safeGap = routeIndex < 8 ? rand(66, 78) : rand(76, 94);
+      y -= safeGap;
 
-    let side = 1;
-    while (Math.abs(y - (canvas.height - 72)) < lvl.height + 900) {
-      const gap = rand(lvl.platformGap[0], lvl.platformGap[1]);
-      y -= gap;
-      const baseW = lvl.platformWidth + rand(-8, 28);
-      const maxStep = Math.min(220, canvas.width * 0.34);
-      x += side * rand(55, maxStep);
-      if (x < margin) { x = margin + rand(0, 60); side = 1; }
-      if (x + baseW > canvas.width - margin) { x = canvas.width - margin - baseW - rand(0, 45); side = -1; }
-      if (Math.random() < 0.35) side *= -1;
+      const maxShift = Math.min(canvas.width * 0.23, routeIndex < 8 ? 118 : 156);
+      const direction = routeIndex % 4 < 2 ? 1 : -1;
+      centerX += direction * rand(maxShift * 0.42, maxShift);
+      centerX = clamp(centerX, margin + platformW / 2, canvas.width - margin - platformW / 2);
 
-      const platform = makePlatform(x, y, baseW, false);
-      platforms.push(platform);
+      platformW = clamp(lvl.platformWidth + rand(22, 48), 184, Math.max(184, canvas.width - margin * 2));
+      const x = clamp(centerX - platformW / 2, margin, canvas.width - margin - platformW);
+      platforms.push(makePlatform(x, y, platformW, false));
 
-      // Money: placed near/on routes, not too far off to the side.
-      if (Math.random() < 0.88) {
-        const coinCount = Math.random() < 0.35 ? 2 : 1;
-        for (let c = 0; c < coinCount; c++) {
-          coins.push(makeCoin(
-            clamp(x + 22 + rand(0, Math.max(20, baseW - 58)), 20, canvas.width - 56),
-            y - 48 - c * 32,
-            Math.random() < 0.15 ? 10 : 5
-          ));
-        }
+      // Every safe platform has one reachable coin. Occasional bonus coins are
+      // centered above it rather than scattered into dead space.
+      coins.push(makeCoin(x + platformW / 2 - 20, y - 52, 5));
+      if (routeIndex > 7 && routeIndex % 5 === 0) {
+        coins.push(makeCoin(x + platformW / 2 - 20, y - 92, 10));
       }
 
-      // Power-ups are useful but not constant.
-      if (Math.random() < 0.16) {
+      // Helpful power-ups stay on the safe route.
+      if (routeIndex >= 7 && routeIndex % 9 === 0) {
         const types = ["magnet", "shield", "rocket", "mega"];
         powers.push({
-          x: clamp(x + baseW / 2 - 21 + rand(-32, 32), 20, canvas.width - 62),
-          y: y - 88,
+          x: clamp(x + platformW / 2 - 21, 20, canvas.width - 62),
+          y: y - 116,
           w: 42,
           h: 42,
-          type: types[Math.floor(Math.random() * types.length)],
+          type: types[Math.floor(routeIndex / 9) % types.length],
           collected: false
         });
       }
 
-      // DROP obstacles: placed between platforms, not directly on every route.
-      if (platforms.length > 10 && Math.random() < lvl.obstacleRate) {
-        const ow = Math.min(170, Math.max(100, canvas.width * 0.20));
-        const ox = clamp(x + (Math.random() < 0.5 ? -ow * .75 : baseW * .65), 10, canvas.width - ow - 10);
-        obstacles.push({
-          x: ox,
-          y: y + rand(34, 62),
-          w: ow,
-          h: 22,
-          hit: false
-        });
+      // DROP hazards begin only after the safe opening. They are placed at the
+      // far side of a platform, never across the center landing lane.
+      if (routeIndex >= 12 && routeIndex % 8 === 4) {
+        const ow = Math.min(118, Math.max(86, canvas.width * 0.13));
+        const leftSide = (routeIndex / 8) % 2 < 1;
+        const ox = leftSide
+          ? clamp(x - ow - 20, 10, canvas.width - ow - 10)
+          : clamp(x + platformW + 20, 10, canvas.width - ow - 10);
+        obstacles.push({ x: ox, y: y - 18, w: ow, h: 22, hit: false });
       }
+
+      routeIndex++;
     }
 
     return { platforms, coins, powers, obstacles };
@@ -724,8 +686,12 @@
     state.activePower = "";
     state.powerTimer = 0;
     state.player = makePlayer();
-    state.player.y = canvas.height - 150;
-    state.player.vy = -6;
+    const starter = state.platforms[0];
+    state.player.x = starter.x + starter.w / 2 - state.player.w / 2;
+    state.player.y = starter.y - state.player.h;
+    state.player.vy = 0;
+    state.player.jumpsLeft = 2;
+    state.player.onGround = true;
     state.lastBounceWorld = 0;
 
     // Keep level money, but after DROP add fresh bottom coins/powers.
@@ -737,8 +703,6 @@
         state.coins.push(makeCoin(45 + (i % 4) * Math.min(92, canvas.width / 5), canvas.height - 210 - Math.floor(i / 4) * 75, 5));
       }
       state.powers.push({ x: canvas.width / 2 - 20, y: canvas.height - 275, w: 42, h: 42, type: "shield", collected: false });
-      sound("drop");
-      vibe([80, 35, 80]);
       showToast("DROP! Back to the bottom — platforms rebuilt.", 1600);
     } else if (reason === "resize") {
       state.money = state.levelStartMoney + lvlMoney;
@@ -760,23 +724,25 @@
     state.obstacles = generated.obstacles;
     state.sceneProgress = 0;
     state.player = makePlayer();
+    const starter = state.platforms[0];
+    state.player.x = starter.x + starter.w / 2 - state.player.w / 2;
+    state.player.y = starter.y - state.player.h;
+    state.player.vy = 0;
+    state.player.jumpsLeft = 2;
+    state.player.onGround = true;
     state.combo = 0;
     state.activePower = "";
     state.powerTimer = 0;
     state.shield = Math.max(state.shield, 1);
-    sound("level");
-    vibe([30, 20, 30]);
     showToast("Scene " + (state.levelIndex + 1) + ": " + currentLevel().name, 1700);
   }
 
   function startGame() {
-    unlockAudio();
-    sound("button");
-    vibe(20);
     document.getElementById("startScreen").style.display = "none";
     document.getElementById("howScreen").style.display = "none";
     document.getElementById("gameOverScreen").style.display = "none";
     document.getElementById("scoreboardOverlay").style.display = "none";
+    canvas.focus({ preventScroll: true });
 
     state.running = true;
     state.levelIndex = 0;
@@ -818,8 +784,6 @@
       level: state.levelIndex + 1,
       date: new Date().toLocaleDateString()
     };
-    sound(won ? "win" : "drop");
-    vibe(won ? [35, 25, 35] : [60, 30, 60]);
     maybeSaveScores(stats);
     document.getElementById("gameOverTitle").textContent = won ? "Meal Quest Complete!" : "Run Over!";
     document.getElementById("finalStats").innerHTML =
@@ -882,33 +846,31 @@
 
     const moveLeft = state.inputLeft;
     const moveRight = state.inputRight;
-    if (moveLeft) p.vx -= p.speed;
-    if (moveRight) p.vx += p.speed;
-    if (!moveLeft && !moveRight) p.vx *= 0.88;
+    if (moveLeft && !moveRight) p.vx -= p.speed;
+    if (moveRight && !moveLeft) p.vx += p.speed;
+    if (!moveLeft && !moveRight) p.vx *= 0.76;
+    if (moveLeft && moveRight) p.vx *= 0.82;
+    if (Math.abs(p.vx) < 0.04) p.vx = 0;
     p.vx = clamp(p.vx, -p.maxSpeed, p.maxSpeed);
 
-    if (state.activePower === "rocket") {
-      // Share-ready tune: rocket is a controlled boost, not an uncontrollable launch.
-      // It still helps you climb, but keeps you slow enough to steer into money and platforms.
-      p.vy += p.gravity * 0.20;
-      p.vy -= 0.055;
-      p.vy = clamp(p.vy, -4.15, 1.35);
-      p.vx *= 0.985;
-    } else {
-      p.vy += p.gravity;
-    }
-
-    // Jump logic: one press, not held repeat.
+    // Burger Money now uses a controlled jump: the character stays on a
+    // platform until the player presses Jump, instead of automatically flying
+    // upward every time a landing is detected.
     const jumpDown = state.jumpPressed;
     if (jumpDown && !state.jumpWasDown && p.jumpsLeft > 0) {
-      p.vy = p.jumpPower * (state.activePower === "mega" ? 1.12 : 1);
+      p.vy = p.jumpPower * (state.activePower === "mega" ? 1.25 : 1);
       p.jumpsLeft--;
       p.onGround = false;
-      sound("jump");
-      vibe(14);
-      addParticles(p.x + p.w/2, p.y + p.h, 10, "#fff2a6");
+      addParticles(p.x + p.w / 2, p.y + p.h, 10, "#fff2a6");
     }
     state.jumpWasDown = jumpDown;
+
+    if (state.activePower === "rocket") {
+      p.vy = Math.min(p.vy, -5.3);
+      p.vy -= 0.055;
+    } else if (!p.onGround || p.vy < 0) {
+      p.vy += p.gravity;
+    }
 
     p.x += p.vx;
     p.y += p.vy;
@@ -917,26 +879,29 @@
     if (p.x > canvas.width + 16) p.x = -p.w;
     if (p.x + p.w < -16) p.x = canvas.width;
 
-    // Platform collision: forgiving landing, only when moving downward.
+    // Landing only happens while falling. On landing, velocity becomes zero
+    // so the player can choose the next jump instead of being launched again.
+    const wasOnGround = p.onGround;
     p.onGround = false;
-    if (p.vy >= -1) {
+    if (p.vy >= 0) {
       for (const plat of state.platforms) {
+        const playerBottom = p.y + p.h;
         if (p.x + p.w * 0.82 > plat.x &&
             p.x + p.w * 0.18 < plat.x + plat.w &&
-            p.y + p.h > plat.y - 8 &&
-            p.y + p.h < plat.y + plat.h + Math.max(18, p.vy + 16)) {
+            playerBottom >= plat.y - 2 &&
+            playerBottom <= plat.y + plat.h + Math.max(14, p.vy + 10)) {
           p.y = plat.y - p.h;
-          p.vy = p.jumpPower;
+          p.vy = 0;
           p.jumpsLeft = 2;
           p.onGround = true;
-          state.combo++;
-          state.bestCombo = Math.max(state.bestCombo, state.combo);
-          const jumpFt = Math.max(0, Math.round((state.sceneProgress - state.lastBounceWorld) / 12));
-          state.biggestJump = Math.max(state.biggestJump, jumpFt);
-          state.lastBounceWorld = state.sceneProgress;
-          sound("bounce");
-          vibe(8);
-          addParticles(p.x + p.w/2, p.y + p.h, 7, plat.starter ? "#ffd34d" : "#ffffff");
+          if (!wasOnGround) {
+            state.combo++;
+            state.bestCombo = Math.max(state.bestCombo, state.combo);
+            const jumpFt = Math.max(0, Math.round((state.sceneProgress - state.lastBounceWorld) / 12));
+            state.biggestJump = Math.max(state.biggestJump, jumpFt);
+            state.lastBounceWorld = state.sceneProgress;
+            addParticles(p.x + p.w / 2, p.y + p.h, 7, plat.starter ? "#ffd34d" : "#ffffff");
+          }
           break;
         }
       }
@@ -945,8 +910,7 @@
     // Camera scroll: slower and stable.
     const scrollLine = canvas.height * 0.44;
     if (p.y < scrollLine) {
-      const wantedScroll = (scrollLine - p.y) * 0.56;
-      const scroll = Math.min(wantedScroll, state.activePower === "rocket" ? 8.5 : 14);
+      const scroll = (scrollLine - p.y) * 0.72;
       p.y += scroll;
       state.sceneProgress += scroll;
       for (const arr of [state.platforms, state.coins, state.powers, state.obstacles]) {
@@ -966,31 +930,25 @@
       const dx = px - cx;
       const dy = py - cy;
       const dist = Math.hypot(dx, dy);
-      const pullDist = state.activePower === "magnet" ? 260 : state.activePower === "rocket" ? 185 : 118;
+      const pullDist = state.activePower === "magnet" ? 230 : 96;
       if (dist < pullDist && dist > 1) {
-        const pullSpeed = state.activePower === "magnet" ? 8.5 : state.activePower === "rocket" ? 5.2 : 3.4;
-        coin.x += dx / dist * pullSpeed;
-        coin.y += dy / dist * pullSpeed;
+        coin.x += dx / dist * (state.activePower === "magnet" ? 8 : 3.0);
+        coin.y += dy / dist * (state.activePower === "magnet" ? 8 : 3.0);
       }
-      const grabPad = state.activePower === "rocket" ? 24 : 16;
-      if (rectHit(p, { x: coin.x - grabPad, y: coin.y - grabPad, w: coin.w + grabPad * 2, h: coin.h + grabPad * 2 })) {
+      if (rectHit(p, { x: coin.x - 12, y: coin.y - 12, w: coin.w + 24, h: coin.h + 24 })) {
         coin.collected = true;
         state.money += coin.value;
         state.totalMoney += coin.value;
         state.score += coin.value * 9 + Math.min(state.combo * 4, 80);
-        sound("coin");
-        vibe(10);
         addParticles(coin.x + coin.w/2, coin.y + coin.h/2, 12, "#ffd34d");
       }
     }
 
     for (const pow of state.powers) {
       if (pow.collected) continue;
-      if (rectHit(p, { x: pow.x - 22, y: pow.y - 22, w: pow.w + 44, h: pow.h + 44 })) {
+      if (rectHit(p, { x: pow.x - 14, y: pow.y - 14, w: pow.w + 28, h: pow.h + 28 })) {
         pow.collected = true;
         activatePower(pow.type);
-        sound("power");
-        vibe([18, 18, 18]);
         addParticles(pow.x + pow.w/2, pow.y + pow.h/2, 18, "#65e8ff");
       }
     }
@@ -1004,8 +962,6 @@
         if (state.shield > 0) {
           state.shield--;
           p.invincible = 70;
-          sound("shield");
-          vibe(45);
           showToast("Shield blocked DROP!", 1000);
           addParticles(obs.x + obs.w/2, obs.y, 20, "#64ff77");
         } else if (p.invincible <= 0) {
@@ -1048,8 +1004,8 @@
       return;
     }
     state.activePower = type;
-    state.powerTimer = type === "rocket" ? 155 : type === "magnet" ? 390 : 180;
-    if (type === "mega") state.player.vy = state.player.jumpPower * 1.16;
+    state.powerTimer = type === "rocket" ? 210 : type === "magnet" ? 360 : 180;
+    if (type === "mega") state.player.vy = state.player.jumpPower * 1.45;
     showToast(type.toUpperCase() + " power!", 1000);
   }
 
@@ -1085,11 +1041,19 @@
 
   function draw() {
     const lvl = currentLevel();
-    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    grad.addColorStop(0, lvl.sky1);
-    grad.addColorStop(1, lvl.sky2);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Use the same Burger Money neon world behind the home page and gameplay.
+    if (img.background.ready && !img.background.failed) {
+      drawCoverImage(img.background, 0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgba(20, 0, 45, .48)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else {
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, lvl.sky1);
+      grad.addColorStop(1, lvl.sky2);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     drawBackground(lvl);
 
@@ -1105,7 +1069,26 @@
       ctx.fill();
       ctx.globalAlpha = 1;
     }
-    if (state.player) drawPlayer(state.player);
+    drawPlayer(state.player);
+  }
+
+  function drawCoverImage(image, x, y, w, h) {
+    const imageRatio = image.width / image.height;
+    const areaRatio = w / h;
+    let drawW, drawH, drawX, drawY;
+
+    if (imageRatio > areaRatio) {
+      drawH = h;
+      drawW = h * imageRatio;
+      drawX = x - (drawW - w) / 2;
+      drawY = y;
+    } else {
+      drawW = w;
+      drawH = w / imageRatio;
+      drawX = x;
+      drawY = y - (drawH - h) / 2;
+    }
+    ctx.drawImage(image, drawX, drawY, drawW, drawH);
   }
 
   function drawBackground(lvl) {
@@ -1114,17 +1097,16 @@
       c.x += c.speed;
       if (c.x > canvas.width + 100) c.x = -140;
       if (c.y > canvas.height + 120) c.y = -80;
-      drawSoftCloud(c.x, c.y, 75 * c.s, 0.13);
+      drawSoftCloud(c.x, c.y, 75 * c.s, 0.055);
     }
 
-    // Scene decorations.
-    const progressRatio = Math.min(1, state.sceneProgress / lvl.minProgress);
-    ctx.globalAlpha = 0.16;
+    // Keep the artwork atmospheric but leave the play lane clean and readable.
+    ctx.globalAlpha = 0.035;
     ctx.fillStyle = "#ffd34d";
-    ctx.font = "900 " + Math.max(40, canvas.width * 0.07) + "px Arial";
+    ctx.font = "900 " + Math.max(36, canvas.width * 0.05) + "px Arial";
     ctx.textAlign = "center";
     const words = ["DRIVE", "PLAY", "FRY", "NEON"];
-    ctx.fillText(words[state.levelIndex] || "MEAL", canvas.width/2, canvas.height * (0.68 - progressRatio * 0.25));
+    ctx.fillText(words[state.levelIndex] || "MEAL", canvas.width / 2, canvas.height * 0.72);
     ctx.restore();
   }
 
@@ -1143,9 +1125,9 @@
 
   function drawPlatform(p) {
     ctx.save();
-    ctx.shadowColor = p.starter ? "rgba(255,211,77,.8)" : "rgba(255,255,255,.45)";
-    ctx.shadowBlur = p.starter ? 18 : 10;
-    ctx.fillStyle = p.starter ? "#ffd34d" : "#f8f0ff";
+    ctx.shadowColor = p.starter ? "rgba(255,211,77,.95)" : "rgba(255,255,255,.9)";
+    ctx.shadowBlur = p.starter ? 22 : 16;
+    ctx.fillStyle = p.starter ? "#ffd34d" : "#ffffff";
     ctx.beginPath();
     roundRect(ctx, p.x, p.y, p.w, p.h, p.h/2);
     ctx.fill();
@@ -1288,86 +1270,105 @@
     requestAnimationFrame(loop);
   }
 
-  // Controls
-  window.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
-  window.addEventListener("contextmenu", e => e.preventDefault());
-  window.addEventListener("keydown", e => {
-    if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") state.inputLeft = true;
-    if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") state.inputRight = true;
-    if (e.key === "ArrowUp" || e.key === " " || e.key.toLowerCase() === "w") { e.preventDefault(); state.jumpPressed = true; }
-  });
-  window.addEventListener("keyup", e => {
-    if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") state.inputLeft = false;
-    if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") state.inputRight = false;
-    if (e.key === "ArrowUp" || e.key === " " || e.key.toLowerCase() === "w") state.jumpPressed = false;
+  // Controls: capture arrow keys before the browser can treat them as page keys.
+  const GAME_KEYS = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "Space", "KeyA", "KeyD", "KeyW"]);
+
+  function setKeyState(event, isDown) {
+    const code = event.code;
+    if (GAME_KEYS.has(code)) event.preventDefault();
+    if (code === "ArrowLeft" || code === "KeyA") state.inputLeft = isDown;
+    if (code === "ArrowRight" || code === "KeyD") state.inputRight = isDown;
+    if (code === "ArrowUp" || code === "Space" || code === "KeyW") state.jumpPressed = isDown;
+  }
+
+  window.addEventListener("keydown", event => setKeyState(event, true), { capture: true });
+  window.addEventListener("keyup", event => setKeyState(event, false), { capture: true });
+  window.addEventListener("blur", () => {
+    state.inputLeft = false;
+    state.inputRight = false;
+    state.jumpPressed = false;
+    state.jumpWasDown = false;
   });
 
   function bindHold(id, down, up) {
     const el = document.getElementById(id);
-    const start = e => { e.preventDefault(); down(); };
-    const end = e => { e.preventDefault(); up(); };
-    el.addEventListener("pointerdown", start);
-    el.addEventListener("pointerup", end);
-    el.addEventListener("pointercancel", end);
-    el.addEventListener("pointerleave", end);
+    const start = event => {
+      event.preventDefault();
+      el.setPointerCapture?.(event.pointerId);
+      down();
+    };
+    const end = event => {
+      event.preventDefault();
+      up();
+    };
+    el.addEventListener("pointerdown", start, { passive: false });
+    el.addEventListener("pointerup", end, { passive: false });
+    el.addEventListener("pointercancel", end, { passive: false });
+    el.addEventListener("lostpointercapture", end, { passive: false });
   }
 
   bindHold("leftBtn", () => state.inputLeft = true, () => state.inputLeft = false);
   bindHold("rightBtn", () => state.inputRight = true, () => state.inputRight = false);
   bindHold("jumpBtn", () => state.jumpPressed = true, () => state.jumpPressed = false);
-  document.getElementById("soundBtn").addEventListener("click", e => { e.preventDefault(); toggleSound(); });
 
   // UI functions
   window.startGame = startGame;
   window.showHow = () => {
-    unlockAudio(); sound("button"); vibe(10);
     document.getElementById("startScreen").style.display = "none";
     document.getElementById("howScreen").style.display = "flex";
   };
   window.hideHow = () => {
-    sound("button"); vibe(10);
     document.getElementById("howScreen").style.display = "none";
     document.getElementById("startScreen").style.display = "flex";
   };
   window.showStart = () => {
-    sound("button"); vibe(10);
     document.getElementById("gameOverScreen").style.display = "none";
     document.getElementById("startScreen").style.display = "flex";
   };
 
   window.showScoreboard = () => {
-    unlockAudio(); sound("button"); vibe(10);
     document.getElementById("scoreboardOverlay").style.display = "flex";
     renderBoard(state.boardMode || "overall");
   };
   window.hideScoreboard = () => {
-    sound("button"); vibe(10);
     document.getElementById("scoreboardOverlay").style.display = "none";
   };
   window.renderBoard = (mode) => {
+    const labels = { overall: "Overall Score", fastest: "Fastest Finish", money: "Most Money", jump: "Biggest Jump", combo: "Best Combo" };
+    if (!Object.prototype.hasOwnProperty.call(labels, mode)) mode = "overall";
     state.boardMode = mode;
-    const boards = readBoards();
-    const labels = {
-      overall: "Overall Score",
-      fastest: "Fastest Finish",
-      money: "Most Money",
-      jump: "Biggest Jump",
-      combo: "Best Combo"
+    document.querySelectorAll("#scoreboardOverlay .bm-tab").forEach(tab => {
+      tab.setAttribute("aria-pressed", String(tab.dataset.bmMode === mode));
+    });
+    const rows = readBoards()[mode] || [];
+    const formatValue = value => {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return "—";
+      if (mode === "fastest") return n.toFixed(1) + "s";
+      if (mode === "money") return "$" + Math.round(n).toLocaleString();
+      if (mode === "jump") return Math.round(n).toLocaleString() + " ft";
+      return Math.round(n).toLocaleString();
     };
-    const rows = boards[mode] || [];
-    let html = "<h3>" + labels[mode] + "</h3>";
+    const safeName = row => escapeHtml(String(row?.name || "Player").slice(0,48));
+    const medals = ["#1", "#2", "#3"];
+    let html = '<h3 class="bm-board-subhead">' + labels[mode] + '</h3>';
     if (!rows.length) {
-      html += "<p>No scores yet. Play a run to save the first score.</p>";
+      html += '<div class="bm-empty">No scores yet.</div>';
     } else {
-      html += "<table class='scoreTable'><thead><tr><th>#</th><th>Name</th><th>Value</th><th>Money</th><th>Time</th><th>Date</th></tr></thead><tbody>";
-      rows.forEach((r, i) => {
-        let value = r.value;
-        if (mode === "fastest") value = Number(value).toFixed(1) + "s";
-        else if (mode === "money") value = "$" + Number(value).toFixed(0);
-        else if (mode === "jump") value = Number(value).toFixed(0) + " ft";
-        html += "<tr><td>" + (i+1) + "</td><td>" + escapeHtml(r.name) + "</td><td><b>" + value + "</b></td><td>$" + Number(r.stats.money).toFixed(0) + "</td><td>" + Number(r.stats.time).toFixed(1) + "s</td><td>" + escapeHtml(r.date || "") + "</td></tr>";
-      });
-      html += "</tbody></table>";
+      html += '<div class="bm-podium">' + rows.slice(0,3).map((row,i) =>
+        '<div class="bm-podium-card" data-place="' + (i+1) + '">' +
+        '<div class="bm-place" aria-label="Rank ' + (i+1) + '">' + medals[i] + '</div>' +
+        '<div class="bm-person">' + safeName(row) + '</div>' +
+        '<div class="bm-value">' + formatValue(row.value) + '</div>' +
+        '<div class="bm-meta">#' + (i+1) + '</div></div>'
+      ).join('') + '</div>';
+      if (rows.length > 3) {
+        html += '<div class="bm-run-list">' + rows.slice(3,10).map((row,i) =>
+          '<div class="bm-run"><div class="bm-run-rank">#' + (i+4) + '</div>' +
+          '<div class="bm-run-name">' + safeName(row) + '</div>' +
+          '<div class="bm-run-value">' + formatValue(row.value) + '</div></div>'
+        ).join('') + '</div>';
+      }
     }
     document.getElementById("boardContent").innerHTML = html;
   };

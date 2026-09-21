@@ -1,0 +1,39 @@
+name: Publish cleaned Burger Money complete files
+on:
+  push:
+    paths:
+      - .github/workflows/oh-261-burger-publish.yml
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Burger-Money-OH261-full-game
+          run-id: 35643726205
+          github-token: ${{ github.token }}
+          path: /tmp/oh261-artifact
+      - name: Restore full working files and publish
+        run: |
+          set -euo pipefail
+          zipfile=$(find /tmp/oh261-artifact -name 'Burger-Money-OH261-FULL.zip' -print -quit)
+          test -n "$zipfile"
+          unzip -q -o "$zipfile" -d /tmp/oh261-extract
+          test -f /tmp/oh261-extract/index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('/tmp/oh261-extract/index.html').read_text()
+          for phrase in ['Collect burger money, climb longer scenes','Collect money and keep combos going.','Keyboard: arrows/A-D to move']:
+           assert phrase not in s, phrase
+          assert 'burger_money_background.png' in s and 'function maybeSaveScores(' in s
+          print('Clean start, actual game art, scoring intact')
+          PY
+          cp /tmp/oh261-extract/index.html index.html
+          cp /tmp/oh261-extract/Burger_Money_Final_Polished_Sound_Mobile.html Burger_Money_Final_Polished_Sound_Mobile.html
+          git add index.html Burger_Money_Final_Polished_Sound_Mobile.html
+          git -c user.name='Rare Ink Studio game updates' -c user.email='actions@users.noreply.github.com' commit -m 'Burger Money: clean game intro and in-game-art scoreboard'
+          git push origin HEAD:main

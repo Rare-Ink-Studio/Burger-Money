@@ -1,0 +1,38 @@
+name: Burger Money Passport release retry
+on:
+  push:
+    paths: [.github/workflows/oh261-burger-passport-retry.yml]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Integrate Passport game and verify complete file
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,base64,gzip,re,subprocess
+          p=Path('index.html')
+          def blob(b):return hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
+          assert blob(p.read_bytes())=='4108993817d559584831cdc8589b7345b521e147','Source changed'
+          source=Path('.github/workflows/oh261-burger-passport.yml').read_text()
+          coded=re.search(r'^\s+PATCH_B64: >-\s*\n\s+([A-Za-z0-9+/=]+)',source,re.M).group(1)[:5284]
+          patch=gzip.decompress(base64.b64decode(coded,validate=True))
+          assert hashlib.sha256(patch).hexdigest()=='1da87270d90817fa8ee5d94f82037ecc8f705306d5adb303fc70a0d8a686f043','Corrupt patch'
+          Path('/tmp/update.patch').write_bytes(patch)
+          subprocess.run(['git','apply','--check','/tmp/update.patch'],check=True)
+          subprocess.run(['git','apply','/tmp/update.patch'],check=True)
+          assert blob(p.read_bytes())=='a2813284becd89c6c2077659a223c024c70fee73','Unexpected output'
+          s=p.read_text()
+          assert 'onehome_burger_money_leaderboard' in s and 'OH_GAME_LAUNCH' in s and 'Guest play' not in s
+          Path('Burger_Money_Final_Polished_Sound_Mobile.html').write_bytes(p.read_bytes())
+          Path('/tmp/game.js').write_text('\n'.join(re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>',s)))
+          Path('.github/workflows/oh261-burger-passport.yml').unlink()
+          print('PASS complete Burger Money Passport game source')
+          PY
+          node --check /tmp/game.js
+          git add index.html Burger_Money_Final_Polished_Sound_Mobile.html .github/workflows/oh261-burger-passport.yml
+          git -c user.name='Rare Ink Studio' -c user.email='actions@users.noreply.github.com' commit -m 'Link Burger Money scores to One Home Passport'
+          git push origin HEAD:main
